@@ -17,7 +17,7 @@ const PORT = process.env.PORT || 5000;
 
 // Настройки CORS
 const corsOptions = {
-  origin: 'https://cyber-cats.ru:3000', // Убедитесь, что это соответствует URL вашего фронтенда
+  origin: 'http://localhost:3000', // Убедитесь, что это соответствует URL вашего фронтенда
   credentials: true,
   optionsSuccessStatus: 200
 };
