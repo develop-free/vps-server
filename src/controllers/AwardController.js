@@ -6,7 +6,6 @@ const Department = require('../models/Department');
 const Group = require('../models/Group');
 const Level = require('../models/Level');
 const Event = require('../models/Event');
-const User = require('../models/User');
 const mongoose = require('mongoose');
 const multer = require('multer');
 const path = require('path');
@@ -21,21 +20,10 @@ const STATUS_CODES = {
   NOT_FOUND: 404,
   SERVER_ERROR: 500,
 };
-const ERROR_MESSAGES = {
-  INVALID_ID: (field) => `Недействительный ID ${field}`,
-  MISSING_FIELD: (field) => `Поле ${field} обязательно`,
-  NOT_FOUND: (entity, id) => `${entity} с ID ${id} не найден`,
-  SERVER_ERROR: 'Ошибка сервера',
-  INVALID_FILE_TYPE: 'Поддерживаются только файлы JPEG, PNG или PDF',
-};
 
 // Создание директории для наград
-try {
-  if (!fs.existsSync(AWARDS_DIR)) {
-    fs.mkdirSync(AWARDS_DIR, { recursive: true });
-  }
-} catch (error) {
-  // Логирование удалено
+if (!fs.existsSync(AWARDS_DIR)) {
+  fs.mkdirSync(AWARDS_DIR, { recursive: true });
 }
 
 // Настройка Multer
@@ -49,23 +37,23 @@ const upload = multer({
   fileFilter: (req, file, cb) => {
     const filetypes = /jpeg|jpg|png|pdf/;
     const isValid = filetypes.test(file.mimetype) && filetypes.test(path.extname(file.originalname).toLowerCase());
-    cb(isValid ? null : new Error(ERROR_MESSAGES.INVALID_FILE_TYPE), isValid);
+    cb(isValid ? null : new Error('INVALID_FILE_TYPE'), isValid);
   },
 }).single('filePath');
 
 // Вспомогательная функция для валидации ObjectId
 const isValidObjectId = (id, field) => {
   if (!mongoose.Types.ObjectId.isValid(id)) {
-    throw new Error(ERROR_MESSAGES.INVALID_ID(field));
+    throw new Error('INVALID_ID');
   }
   return id;
 };
 
 // Вспомогательная функция для проверки существования документа
-const checkExists = async (Model, id, entity) => {
+const checkExists = async (Model, id) => {
   const doc = await Model.findById(id);
   if (!doc) {
-    throw new Error(ERROR_MESSAGES.NOT_FOUND(entity, id));
+    throw new Error('NOT_FOUND');
   }
   return doc;
 };
@@ -73,13 +61,13 @@ const checkExists = async (Model, id, entity) => {
 // Централизованная обработка ошибок
 const handleError = (res, error, status = STATUS_CODES.SERVER_ERROR) => {
   console.error(error);
-  res.status(status).json({ message: ERROR_MESSAGES.SERVER_ERROR, error: error.message });
+  res.status(status).json({ message: error.message });
 };
 
 exports.createAward = async (req, res) => {
   upload(req, res, async (err) => {
     if (err) {
-      return res.status(STATUS_CODES.BAD_REQUEST).json({ message: err.message });
+      return res.status(STATUS_CODES.BAD_REQUEST).json({ message: 'INVALID_FILE_TYPE' });
     }
 
     try {
@@ -90,7 +78,7 @@ exports.createAward = async (req, res) => {
       const requiredFields = { studentId, departmentId, groupId, eventName, awardType, level };
       for (const [field, value] of Object.entries(requiredFields)) {
         if (!value) {
-          return res.status(STATUS_CODES.BAD_REQUEST).json({ message: ERROR_MESSAGES.MISSING_FIELD(field) });
+          return res.status(STATUS_CODES.BAD_REQUEST).json({ message: 'MISSING_FIELD' });
         }
       }
 
@@ -102,24 +90,21 @@ exports.createAward = async (req, res) => {
       if (awardDegree) isValidObjectId(awardDegree, 'степени награды');
       isValidObjectId(level, 'уровня');
 
-      // Проверка существования документов (параллельные запросы)
+      // Проверка существования документов
       await Promise.all([
-        checkExists(Student, studentId, 'Студент'),
-        checkExists(Department, departmentId, 'Отделение'),
-        checkExists(Group, groupId, 'Группа'),
-        checkExists(AwardType, awardType, 'Тип награды'),
-        checkExists(Level, level, 'Уровень'),
+        checkExists(Student, studentId),
+        checkExists(Department, departmentId),
+        checkExists(Group, groupId),
+        checkExists(AwardType, awardType),
+        checkExists(Level, level),
       ]);
 
       // Проверка степени награды
       if (awardDegree) {
-        const awardDegreeDoc = await checkExists(AwardDegree, awardDegree, 'Степень награды');
+        const awardDegreeDoc = await checkExists(AwardDegree, awardDegree);
         const awardtypesId = awardDegreeDoc.awardtypes_id;
-
-        if (!awardtypesId || !mongoose.Types.ObjectId.isValid(awardtypesId)) {
-          // Предупреждение удалено
-        } else if (awardtypesId.toString() !== awardType) {
-          // Предупреждение удалено
+        if (awardtypesId && mongoose.Types.ObjectId.isValid(awardtypesId) && awardtypesId.toString() !== awardType) {
+          return res.status(STATUS_CODES.BAD_REQUEST).json({ message: 'INVALID_AWARD_DEGREE' });
         }
       }
 
@@ -146,13 +131,9 @@ exports.createAward = async (req, res) => {
         .populate('awardDegree', 'name')
         .populate('level', 'levelName');
 
-      res.status(STATUS_CODES.CREATED).json({
-        message: 'Награда успешно создана',
-        award,
-        awards,
-      });
+      res.status(STATUS_CODES.CREATED).json({ awards });
     } catch (error) {
-      handleError(res, error, error.message.includes('Недействительный') ? STATUS_CODES.BAD_REQUEST : STATUS_CODES.NOT_FOUND);
+      handleError(res, error, error.message.includes('INVALID') ? STATUS_CODES.BAD_REQUEST : STATUS_CODES.NOT_FOUND);
     }
   });
 };
@@ -164,7 +145,7 @@ exports.getStudentIdByUser = async (req, res) => {
 
     const student = await Student.findOne({ user: userId }).select('_id first_name last_name middle_name');
     if (!student) {
-      return res.status(STATUS_CODES.NOT_FOUND).json({ message: 'Студент не найден для данного пользователя' });
+      return res.status(STATUS_CODES.NOT_FOUND).json({ message: 'NOT_FOUND' });
     }
 
     res.status(STATUS_CODES.OK).json({
@@ -180,13 +161,23 @@ exports.getAwardsByStudent = async (req, res) => {
   try {
     const { studentId } = req.params;
     isValidObjectId(studentId, 'студента');
+
     const awards = await Award.find({ studentId })
-      .populate('studentId', 'first_name last_name middle_name')
+      .populate({
+        path: 'studentId',
+        select: 'first_name last_name middle_name user',
+        populate: {
+          path: 'user',
+          model: 'User',
+          select: 'email role',
+        },
+      })
       .populate('departmentId', 'name')
       .populate('groupId', 'name')
       .populate('awardType', 'name')
       .populate('awardDegree', 'name')
       .populate('level', 'levelName');
+
     res.status(STATUS_CODES.OK).json(awards);
   } catch (error) {
     handleError(res, error);
@@ -207,9 +198,6 @@ exports.getAwardDegrees = async (req, res) => {
     const awardDegrees = await AwardDegree.find({
       awardtypes_id: { $exists: true, $ne: null, $type: 'objectId' },
     });
-    if (!awardDegrees.length) {
-      return res.status(STATUS_CODES.OK).json([]);
-    }
     res.status(STATUS_CODES.OK).json(awardDegrees);
   } catch (error) {
     handleError(res, error);
@@ -272,34 +260,38 @@ exports.getEvents = async (req, res) => {
 
 exports.getCurrentStudentAndAwards = async (req, res) => {
   try {
-    const userId = req.userId; // Извлекается из JWT-токена через middleware
-    isValidObjectId(userId, 'пользователя');
+    const userId = req.userId;
+    isValidObjectId(userId, 'userId');
 
-    // Находим пользователя
-    const user = await User.findById(userId);
-    if (!user || !user.studentId) {
-      return res.status(STATUS_CODES.NOT_FOUND).json({ message: 'Студент не найден для текущего пользователя' });
-    }
-
-    const studentId = user.studentId;
-    isValidObjectId(studentId, 'студента');
-
-    // Находим студента
-    const student = await Student.findById(studentId).select('first_name last_name middle_name');
+    const student = await Student.findOne({ user: userId }).select('_id first_name last_name middle_name');
     if (!student) {
-      return res.status(STATUS_CODES.NOT_FOUND).json({ message: 'Студент не найден' });
+      return res.status(STATUS_CODES.NOT_FOUND).json({ message: 'NOT_FOUND' });
     }
 
-    // Находим награды
+    const studentId = student._id;
+
     const awards = await Award.find({ studentId })
-      .populate('studentId', 'first_name last_name middle_name')
+      .populate({
+        path: 'studentId',
+        select: 'first_name last_name middle_name user',
+        populate: {
+          path: 'user',
+          select: 'email',
+        },
+      })
       .populate('departmentId', 'name')
       .populate('groupId', 'name')
       .populate('awardType', 'name')
       .populate('awardDegree', 'name')
       .populate('level', 'levelName');
 
-    res.status(STATUS_CODES.OK).json({ student, awards });
+    res.status(STATUS_CODES.OK).json({
+      student: {
+        studentId: student._id,
+        studentName: `${student.last_name} ${student.first_name} ${student.middle_name}`,
+      },
+      awards,
+    });
   } catch (error) {
     handleError(res, error);
   }

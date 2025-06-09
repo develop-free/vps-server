@@ -17,7 +17,7 @@ const PORT = process.env.PORT || 5000;
 
 // Настройки CORS
 const corsOptions = {
-  origin: 'http://localhost:3000', // Убедитесь, что это соответствует URL вашего фронтенда
+  origin: 'https://cyber-cats.ru', // Убедитесь, что это соответствует URL вашего фронтенда
   credentials: true,
   optionsSuccessStatus: 200
 };
@@ -44,14 +44,6 @@ app.use('/api', teachersRoutes);
 app.use('/api', studentsRoutes);
 app.use('/api', awardRoutes);
 
-// Обработка ошибок
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({
-    success: false,
-    message: 'Внутренняя ошибка сервера'
-  });
-});
 
 app.set('etag', false);
 app.use((req, res, next) => {
@@ -69,3 +61,4 @@ app.use('/Uploads', express.static(path.join(__dirname, 'Uploads'), {
 app.listen(PORT, () => {
   console.log(`Сервер запущен на порту ${PORT}`);
 });
+
