@@ -2,14 +2,14 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const path = require('path');
-const config = require('./config/config');
-const userRoutes = require('./routes/userRoutes');
-const studentRoutes = require('./routes/studentRoutes');
-const eventRoutes = require('./routes/eventRoutes');
-const teachersRoutes = require('./routes/teachersRoutes');
-const { createUploadsFolder } = require('./utils/fileUtils');
-const studentsRoutes = require('./routes/student');
-const awardRoutes = require('./routes/AwardRoutes');
+const config = require('./src/config/config');
+const userRoutes = require('./src/routes/userRoutes');
+const studentRoutes = require('./src/routes/studentRoutes');
+const eventRoutes = require('./src/routes/eventRoutes');
+const teachersRoutes = require('./src/routes/teachersRoutes');
+const { createUploadsFolder } = require('./src/utils/fileUtils');
+const studentsRoutes = require('./src/routes/student');
+const awardRoutes = require('./src/routes/AwardRoutes');
 require('dotenv').config();
 
 
