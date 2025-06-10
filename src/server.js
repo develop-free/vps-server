@@ -41,7 +41,8 @@ const mongoURI = process.env.MONGO_URI;
 
 mongoose.connect(mongoURI)
   .then(() => console.log('Подключение к MongoDB успешно'))
-  .catch(err => console.error('Ошибка подключения к MongoDB:', err));
+  .catch(err => console.error('Ошибка подключения к MongoDB:', err))
+  console.log('MongoDB URI:', process.env.MONGO_URI);
 
 // Маршруты
 app.use('/api/auth', userRoutes);
