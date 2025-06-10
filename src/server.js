@@ -10,6 +10,7 @@ const teachersRoutes = require('./routes/teachersRoutes');
 const { createUploadsFolder } = require('./utils/fileUtils');
 const studentsRoutes = require('./routes/student');
 const awardRoutes = require('./routes/AwardRoutes');
+require('dotenv').config();
 
 
 const app = express();
