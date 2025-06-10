@@ -6,9 +6,9 @@ const crypto = require('crypto');
 const bcrypt = require('bcrypt');
 
 // Проверка переменных окружения
-if (!process.env.EMAIL_USER || !process.env.EMAIL_APP_PASS) {
-  throw new Error('Отсутствуют учетные данные для отправки email (EMAIL_USER или EMAIL_APP_PASS)');
-}
+// if (!process.env.EMAIL_USER || !process.env.EMAIL_APP_PASS) {
+//   throw new Error('Отсутствуют учетные данные для отправки email (EMAIL_USER или EMAIL_APP_PASS)');
+// }
 
 // Настройка Nodemailer
 const transporter = nodemailer.createTransport({
