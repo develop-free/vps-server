@@ -31,11 +31,10 @@ createUploadsFolder();
 
 app.use('/awards', express.static(path.join(__dirname, 'awards')));
 // Подключение к MongoDB
-
-mongoose.connect(process.env.MONGODB_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-});
+mongoose.connect(config.mongoURI, {
+})
+  .then(() => console.log('Подключение к MongoDB успешно'))
+  .catch(err => console.error('Ошибка подключения к MongoDB:', err));
 
 // Маршруты
 app.use('/api/auth', userRoutes);
