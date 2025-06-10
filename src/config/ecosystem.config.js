@@ -1,9 +1,9 @@
 module.exports = {
   apps: [{
     name: 'server',
-    script: '../server.js', // Укажите ваш основной файл
+    script: './src/server.js', // Укажите ваш основной файл
     env: {
-      mongoURI: process.env.MONGO_URI || 'mongodb://localhost:27017/SITES',
+      MONGO_URI: 'mongodb+srv://admin:admin@cluster0.sfjy9.mongodb.net/SITES?retryWrites=true&w=majority&appName=Cluster0',
       EMAIL_USER: 'CyberCats.kpk@gmail.com',
       EMAIL_APP_PASS: 'udjztryefbiwyxs'
     }
