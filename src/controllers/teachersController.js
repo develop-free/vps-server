@@ -5,6 +5,8 @@ const nodemailer = require('nodemailer');
 const crypto = require('crypto');
 const bcrypt = require('bcrypt');
 
+require('dotenv').config();
+
 // Настройка Nodemailer (без немедленной проверки переменных)
 const getTransporter = () => {
   // if (!process.env.EMAIL_USER || !process.env.EMAIL_APP_PASS) {
