@@ -14,7 +14,7 @@ require('dotenv').config({ path: '/root/vps-server/.env' });
 
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = 5000;
 
 // Настройки CORS
 const corsOptions = {
