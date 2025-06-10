@@ -5,22 +5,21 @@ const nodemailer = require('nodemailer');
 const crypto = require('crypto');
 const bcrypt = require('bcrypt');
 
-// Проверка переменных окружения
-if (!process.env.EMAIL_USER || !process.env.EMAIL_APP_PASS) {
-  throw new Error('Отсутствуют учетные данные для отправки email (EMAIL_USER или EMAIL_APP_PASS)');
-}
+// Настройка Nodemailer (без немедленной проверки переменных)
+const getTransporter = () => {
+  if (!process.env.EMAIL_USER || !process.env.EMAIL_APP_PASS) {
+    console.warn('Предупреждение: Отсутствуют учетные данные для отправки email (EMAIL_USER или EMAIL_APP_PASS). Отправка email отключена.');
+    return null; // Возвращаем null, если переменные отсутствуют
+  }
 
-// Настройка Nodemailer
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_APP_PASS,
-  },
-});
-
-console.log('EMAIL_USER:', process.env.EMAIL_USER);
-console.log('EMAIL_APP_PASS:', process.env.EMAIL_APP_PASS);
+  return nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_APP_PASS,
+    },
+  });
+};
 
 // Генерация случайного логина
 const generateLogin = () => {
@@ -35,14 +34,22 @@ const generatePassword = () => {
 
 // Отправка учетных данных на email преподавателя
 const sendTeacherCredentials = async (email, login, password) => {
+  const transporter = getTransporter();
+  if (!transporter) {
+    console.error(`Ошибка: Не удалось отправить email на ${email} из-за отсутствия учетных данных.`);
+    return false;
+  }
+
   const mailOptions = {
     from: process.env.EMAIL_USER,
     to: email,
     subject: 'Ваши учетные данные для входа',
     text: `Ваш логин: ${login}\nВаш пароль: ${password}\nПожалуйста, измените пароль после первого входа.`,
   };
+
   try {
     await transporter.sendMail(mailOptions);
+    console.log(`Email успешно отправлен на ${email}`);
     return true;
   } catch (error) {
     console.error(`Ошибка отправки email на ${email}:`, error);
@@ -52,14 +59,22 @@ const sendTeacherCredentials = async (email, login, password) => {
 
 // Отправка уведомления администратору о добавлении преподавателя
 const sendAdminNotification = async (teacherData) => {
+  const transporter = getTransporter();
+  if (!transporter) {
+    console.error('Ошибка: Не удалось отправить уведомление администратору из-за отсутствия учетных данных.');
+    return false;
+  }
+
   const mailOptions = {
     from: process.env.EMAIL_USER,
     to: process.env.EMAIL_USER,
     subject: 'Новый преподаватель добавлен',
     text: `Добавлен новый преподаватель:\nФИО: ${teacherData.last_name} ${teacherData.first_name} ${teacherData.middle_name || ''}\nДолжность: ${teacherData.position}\nEmail: ${teacherData.email}`,
   };
+
   try {
     await transporter.sendMail(mailOptions);
+    console.log('Уведомление администратору успешно отправлено');
     return true;
   } catch (error) {
     console.error('Ошибка отправки уведомления администратору:', error);
@@ -114,7 +129,7 @@ const createTeacher = async (req, res) => {
     const user = new User({
       login,
       email,
-      password: await bcrypt.hash(password, 8), // Уменьшено до 8 раундов
+      password: await bcrypt.hash(password, 8),
       role: is_teacher ? 'teacher' : 'user',
     });
     await user.save();
