@@ -10,7 +10,7 @@ const teachersRoutes = require('./src/routes/teachersRoutes');
 const { createUploadsFolder } = require('./src/utils/fileUtils');
 const studentsRoutes = require('./src/routes/student');
 const awardRoutes = require('./src/routes/AwardRoutes');
-require('dotenv').config();
+require('dotenv').config({ path: '/root/vps-server/.env' });
 
 
 const app = express();
