@@ -34,10 +34,10 @@ app.use('/awards', express.static(path.join(__dirname, 'awards')));
 // Подключение к MongoDB
 const mongoURI = process.env.MONGO_URI;
 
-if (!mongoURI) {
-  console.error('URI MongoDB не определен в переменных окружения.');
-  process.exit(1); // Завершите процесс, если URI не определен
-}
+// if (!mongoURI) {
+//   console.error('URI MongoDB не определен в переменных окружения.');
+//   process.exit(1); // Завершите процесс, если URI не определен
+// }
 
 mongoose.connect(mongoURI)
   .then(() => console.log('Подключение к MongoDB успешно'))
