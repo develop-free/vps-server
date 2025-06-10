@@ -7,10 +7,10 @@ const bcrypt = require('bcrypt');
 
 // Настройка Nodemailer (без немедленной проверки переменных)
 const getTransporter = () => {
-  if (!process.env.EMAIL_USER || !process.env.EMAIL_APP_PASS) {
-    console.warn('Предупреждение: Отсутствуют учетные данные для отправки email (EMAIL_USER или EMAIL_APP_PASS). Отправка email отключена.');
-    return null; // Возвращаем null, если переменные отсутствуют
-  }
+  // if (!process.env.EMAIL_USER || !process.env.EMAIL_APP_PASS) {
+  //   console.warn('Предупреждение: Отсутствуют учетные данные для отправки email (EMAIL_USER или EMAIL_APP_PASS). Отправка email отключена.');
+  //   return null; // Возвращаем null, если переменные отсутствуют
+  // }
 
   return nodemailer.createTransport({
     service: 'gmail',
