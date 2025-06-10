@@ -18,7 +18,7 @@ const PORT = 5000;
 
 // Настройки CORS
 const corsOptions = {
-  origin: 'http://localhost:3000', // Убедитесь, что это соответствует URL вашего фронтенда
+  origin: 'https://localhost:3000', // Убедитесь, что это соответствует URL вашего фронтенда
   credentials: true,
   optionsSuccessStatus: 200
 };
